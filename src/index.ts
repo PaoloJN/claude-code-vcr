@@ -16,7 +16,7 @@ import {
 export function createServer() {
   const server = new McpServer({
     name: "claude-code-vcr",
-    version: "0.1.0",
+    version: "0.2.0",
   });
 
   server.registerTool(
@@ -104,8 +104,138 @@ async function main() {
     return;
   }
 
+  const command = process.argv[2];
+  if (command && command !== "mcp") {
+    await runCli(process.argv.slice(2));
+    return;
+  }
+
   const server = createServer();
   await server.connect(new StdioServerTransport());
+}
+
+async function runCli(argv: string[]) {
+  const [command, ...rest] = argv;
+  const { positional, options } = parseArgs(rest);
+  const root = options.root;
+
+  if (command === "list") {
+    const result = await listRecentSessions({
+      root,
+      n: options.limit ? Number(options.limit) : options.n ? Number(options.n) : 10,
+      project: options.project,
+    });
+    printSessionSummaries(result.sessions);
+    return;
+  }
+
+  if (command === "search") {
+    const query = positional.join(" ").trim();
+    if (!query) throw new Error("Usage: claude-code-vcr search <query> [--root <path>]");
+    const result = await searchSessions({
+      root,
+      query,
+      lastNDays: options.days ? Number(options.days) : undefined,
+      project: options.project,
+    });
+    console.log(`Found ${result.sessions.length} ${result.sessions.length === 1 ? "session" : "sessions"} for "${query}"`);
+    printSessionSummaries(result.sessions);
+    return;
+  }
+
+  if (command === "replay") {
+    const uuid = positional[0];
+    if (!uuid) throw new Error("Usage: claude-code-vcr replay <uuid> [--root <path>]");
+    const result = await replaySession({ root, uuid });
+    console.log(`Session ${result.session.uuid}`);
+    for (const turn of result.session.turns) {
+      console.log(`\n${turn.role.toUpperCase()}`);
+      if (turn.text) console.log(indent(turn.text));
+      for (const call of turn.toolCalls) console.log(indent(`Tool: ${call.name}`));
+    }
+    return;
+  }
+
+  if (command === "diff") {
+    const [uuidA, uuidB] = positional;
+    if (!uuidA || !uuidB) throw new Error("Usage: claude-code-vcr diff <uuid-a> <uuid-b> [--root <path>]");
+    const result = await diffSessions({ root, uuidA, uuidB });
+    console.log(`${result.a.uuid} -> ${result.b.uuid}`);
+    console.log(`Same first prompt: ${result.sameFirstPrompt ? "yes" : "no"}`);
+    console.log(`Assistant text changed: ${result.assistantTextChanged ? "yes" : "no"}`);
+    console.log(`Turn count delta: ${result.turnCountDelta}`);
+    console.log(`Tools only in ${result.a.uuid}: ${result.toolCalls.onlyA.join(", ") || "none"}`);
+    console.log(`Tools only in ${result.b.uuid}: ${result.toolCalls.onlyB.join(", ") || "none"}`);
+    console.log(`Shared tools: ${result.toolCalls.shared.join(", ") || "none"}`);
+    return;
+  }
+
+  if (command === "help" || command === "-h" || command === "--help") {
+    printHelp();
+    return;
+  }
+
+  throw new Error(`Unknown command "${command}". Run "claude-code-vcr help".`);
+}
+
+function parseArgs(argv: string[]) {
+  const positional: string[] = [];
+  const options: Record<string, string | undefined> = {};
+
+  for (let index = 0; index < argv.length; index += 1) {
+    const arg = argv[index];
+    if (!arg.startsWith("--")) {
+      positional.push(arg);
+      continue;
+    }
+
+    const key = arg.slice(2);
+    const next = argv[index + 1];
+    if (!next || next.startsWith("--")) {
+      options[key] = "true";
+      continue;
+    }
+    options[key] = next;
+    index += 1;
+  }
+
+  return { positional, options };
+}
+
+function printSessionSummaries(sessions: Array<Awaited<ReturnType<typeof listRecentSessions>>["sessions"][number]>) {
+  if (sessions.length === 0) {
+    console.log("No sessions found.");
+    return;
+  }
+
+  for (const session of sessions) {
+    const tools = session.toolCallSummary.map((tool) => `${tool.name} x${tool.count}`).join(", ") || "no tools";
+    console.log(`${session.uuid}  ${session.project}  ${session.turnCount} turns  ${tools}`);
+    if (session.firstUserPrompt) console.log(indent(truncate(session.firstUserPrompt, 96)));
+  }
+}
+
+function printHelp() {
+  console.log(`claude-code-vcr
+
+Usage:
+  claude-code-vcr                 Start the MCP stdio server
+  claude-code-vcr list [--root <path>] [--limit <n>]
+  claude-code-vcr search <query> [--root <path>] [--days <n>]
+  claude-code-vcr replay <uuid> [--root <path>]
+  claude-code-vcr diff <uuid-a> <uuid-b> [--root <path>]
+  claude-code-vcr --tools`);
+}
+
+function indent(value: string) {
+  return value
+    .split("\n")
+    .map((line) => `  ${line}`)
+    .join("\n");
+}
+
+function truncate(value: string, max: number) {
+  return value.length <= max ? value : `${value.slice(0, max - 1)}...`;
 }
 
 if (isEntrypoint()) {

@@ -8,6 +8,8 @@ It reads Claude Code's existing JSONL logs from `~/.claude/projects/**/<uuid>.js
 
 Claude Code already records session history locally. `claude-code-vcr` makes that history queryable through MCP, so you can ask Claude to list, replay, search, and compare previous work without leaving the chat.
 
+![Terminal demo](assets/demo.gif)
+
 ## Install
 
 From GitHub:
@@ -66,6 +68,23 @@ For local development without global install, point Claude Code at the built fil
 - `regression_check`: summarizes reference session shapes next to a `CLAUDE.md` hash for read-only regression review.
 
 All tools accept an optional `root` argument for tests or custom Claude Code log roots. By default, `claude-code-vcr` reads `~/.claude/projects` and skips project paths/files with a `personal` path token.
+
+## CLI
+
+The package is primarily an MCP server, but it also includes a small CLI for quick terminal checks and demos:
+
+```bash
+claude-code-vcr list --limit 5
+claude-code-vcr search "better-auth" --days 7
+claude-code-vcr replay <uuid>
+claude-code-vcr diff <uuid-a> <uuid-b>
+```
+
+To regenerate the README demo:
+
+```bash
+vhs assets/demo.tape
+```
 
 ## Safety Model
 
