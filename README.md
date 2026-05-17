@@ -8,8 +8,6 @@ It reads Claude Code's existing JSONL logs from `~/.claude/projects/**/<uuid>.js
 
 Claude Code already records session history locally. `claude-code-vcr` makes that history queryable through MCP, so you can ask Claude to list, replay, search, and compare previous work without leaving the chat.
 
-![Terminal demo](assets/demo.gif)
-
 ## Install
 
 From GitHub:
@@ -38,11 +36,11 @@ Add this to a project's `.mcp.json` after global install:
 
 ```json
 {
-  "mcpServers": {
-    "claude-code-vcr": {
-      "command": "claude-code-vcr"
+    "mcpServers": {
+        "claude-code-vcr": {
+            "command": "claude-code-vcr"
+        }
     }
-  }
 }
 ```
 
@@ -50,12 +48,12 @@ For local development without global install, point Claude Code at the built fil
 
 ```json
 {
-  "mcpServers": {
-    "claude-code-vcr": {
-      "command": "node",
-      "args": ["/path/to/claude-code-vcr/dist/index.js"]
+    "mcpServers": {
+        "claude-code-vcr": {
+            "command": "node",
+            "args": ["/path/to/claude-code-vcr/dist/index.js"]
+        }
     }
-  }
 }
 ```
 
