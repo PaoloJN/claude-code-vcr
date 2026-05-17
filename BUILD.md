@@ -1,4 +1,4 @@
-# agent-vcr — v0 build playbook
+# claude-code-vcr — v0 build playbook
 
 Self-contained brief. Conductor's agent reads this file at the repo root; Paolo reads it to track what the agent should produce. Date: 2026-05-13.
 
@@ -6,13 +6,13 @@ Self-contained brief. Conductor's agent reads this file at the repo root; Paolo 
 
 ## What you're building
 
-**agent-vcr** — an MCP server in TypeScript that exposes structured query tools for past Claude Code sessions, callable from any current CC session.
+**claude-code-vcr** — an MCP server in TypeScript that exposes structured query tools for past Claude Code sessions, callable from any current CC session.
 
-The product is the conversational eval flow, not a dashboard. Paolo asks Claude inside his normal workflow: *"replay my last 5 skill runs and tell me what regressed since I edited CLAUDE.md last Tuesday"* — Claude calls agent-vcr's tools, answers in the same chat.
+The product is the conversational eval flow, not a dashboard. Paolo asks Claude inside his normal workflow: *"replay my last 5 skill runs and tell me what regressed since I edited CLAUDE.md last Tuesday"* — Claude calls claude-code-vcr's tools, answers in the same chat.
 
 ## The wedge
 
-Every existing eval-for-AI tool (Braintrust, Langfuse, Phoenix, MLflow, Anthropic Console) is a SaaS dashboard you leave Claude Code to use. **agent-vcr is MCP-native — you never leave Claude Code to evaluate your Claude Code work.**
+Every existing eval-for-AI tool (Braintrust, Langfuse, Phoenix, MLflow, Anthropic Console) is a SaaS dashboard you leave Claude Code to use. **claude-code-vcr is MCP-native — you never leave Claude Code to evaluate your Claude Code work.**
 
 Discovery + competitive check done upstream by Paolo's idea-scout (`~/Vault-2.0/inbox/idea-scout.md` shortlist #1). You are not asked to validate the idea. You are asked to ship v0.
 
@@ -20,7 +20,7 @@ Discovery + competitive check done upstream by Paolo's idea-scout (`~/Vault-2.0/
 
 - **Language:** TypeScript
 - **MCP SDK:** `@modelcontextprotocol/sdk` (Node)
-- **Recording layer:** none. Claude Code already records every session to `~/.claude/projects/<encoded-path>/<uuid>.jsonl`. agent-vcr reads those files directly. **Do NOT add MLflow or any new recording mechanism.** The scout entry suggested wrapping MLflow; that was wrong — the recording is already done.
+- **Recording layer:** none. Claude Code already records every session to `~/.claude/projects/<encoded-path>/<uuid>.jsonl`. claude-code-vcr reads those files directly. **Do NOT add MLflow or any new recording mechanism.** The scout entry suggested wrapping MLflow; that was wrong — the recording is already done.
 - **Distribution:** bare npm package v0. Anthropic plugin marketplace submission deferred to v1 once tools feel good.
 - **License:** MIT
 - **Storage:** local-only. No hosted variant in v0.
@@ -64,9 +64,9 @@ Available skills: /office-hours, /plan-ceo-review, /plan-eng-review, /plan-desig
 
 Paste this as your first turn after gstack is installed:
 
-> I want to build agent-vcr — an MCP server in TypeScript that lets me query and replay my past Claude Code sessions from inside any current Claude Code session.
+> I want to build claude-code-vcr — an MCP server in TypeScript that lets me query and replay my past Claude Code sessions from inside any current Claude Code session.
 >
-> The wedge: every existing eval tool (Braintrust, Langfuse, Phoenix, MLflow, Anthropic Console) is a SaaS dashboard you leave CC to use. agent-vcr is MCP-native — you ask Claude inside your normal session "replay my last 5 skill runs and tell me what regressed since I edited CLAUDE.md last Tuesday," and Claude calls agent-vcr's tools and answers in the same chat.
+> The wedge: every existing eval tool (Braintrust, Langfuse, Phoenix, MLflow, Anthropic Console) is a SaaS dashboard you leave CC to use. claude-code-vcr is MCP-native — you ask Claude inside your normal session "replay my last 5 skill runs and tell me what regressed since I edited CLAUDE.md last Tuesday," and Claude calls claude-code-vcr's tools and answers in the same chat.
 >
 > Tech direction (open to reframe): TypeScript with `@modelcontextprotocol/sdk`, reads existing `~/.claude/projects/<encoded>/<uuid>.jsonl` files directly (no new recording layer — CC already records to disk). MCP server distributed via npm v0, Anthropic plugin marketplace v1.
 >
@@ -94,7 +94,7 @@ Follow gstack's flow in order:
 
 When the v0 PR is open:
 - Comment "v0 PR ready" in the Conductor task
-- Do NOT merge. Paolo reviews, runs the agent-vcr binary against his own session log (Vault-2.0 sessions are at `~/.claude/projects/-Users-paolonessim-Vault-2-0/`), and decides whether to merge as-is or request revisions.
+- Do NOT merge. Paolo reviews, runs the claude-code-vcr binary against his own session log (Vault-2.0 sessions are at `~/.claude/projects/-Users-paolonessim-Vault-2-0/`), and decides whether to merge as-is or request revisions.
 
 ## Constraints (hard rules from Paolo's wiki)
 
@@ -104,15 +104,15 @@ These are non-negotiable. They're enforced upstream by Paolo's `[[framework-lock
 2. **Do not parse JSONL for any "Personal" content** — see `[[self-surveillance-trap]]`'s don't-ingest list. The MCP server is for operational/work session content (project work, code, decisions), not for any session that touched private chat content.
 3. **No MLflow.** No heavy dependencies. The Bitter Lesson posture: thin layer over first-party Claude Code outputs.
 4. **No new daemon.** The MCP server runs only when Claude Code invokes it. No always-on process.
-5. **Read-only by default.** agent-vcr does not modify `.jsonl` files. Ever. Records are immutable historical artifacts.
+5. **Read-only by default.** claude-code-vcr does not modify `.jsonl` files. Ever. Records are immutable historical artifacts.
 6. **MIT license.** Open source from Day 1.
 
 ## Acceptance — how Paolo will know v0 works
 
-- [ ] `npm install -g agent-vcr` works (or `npx agent-vcr` if global install isn't ready)
+- [ ] `npm install -g claude-code-vcr` works (or `npx claude-code-vcr` if global install isn't ready)
 - [ ] An MCP server config that Claude Code recognizes (test by adding to `.mcp.json` in any project)
-- [ ] In a fresh CC session, asking "use agent-vcr to list my 5 most recent sessions in this project" returns structured results
-- [ ] In the same session, "use agent-vcr to replay session <uuid>" returns the turns of that session in a readable structure
+- [ ] In a fresh CC session, asking "use claude-code-vcr to list my 5 most recent sessions in this project" returns structured results
+- [ ] In the same session, "use claude-code-vcr to replay session <uuid>" returns the turns of that session in a readable structure
 - [ ] README with: install command, MCP config snippet, example "ask Claude this" prompts
 - [ ] PR opens against `main`, all tests pass, gstack `/review` issued a clean report
 

@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "claude-code-vcr": {
+      "command": "claude-code-vcr"
+    }
+  }
+}

@@ -1,0 +1,52 @@
+{
+  "name": "claude-code-vcr",
+  "version": "0.1.0",
+  "description": "MCP server for querying and replaying local Claude Code sessions.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Paolo Nessim",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PaoloJN/claude-code-vcr.git"
+  },
+  "bugs": {
+    "url": "https://github.com/PaoloJN/claude-code-vcr/issues"
+  },
+  "homepage": "https://github.com/PaoloJN/claude-code-vcr#readme",
+  "keywords": [
+    "claude-code",
+    "mcp",
+    "model-context-protocol",
+    "session-replay",
+    "local-first"
+  ],
+  "bin": {
+    "claude-code-vcr": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    ".mcp.json.example",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepare": "npm run build",
+    "prepack": "npm run build",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.17.3",
+    "zod": "^3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "^24.1.0",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
